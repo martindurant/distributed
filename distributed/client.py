@@ -1581,9 +1581,13 @@ class Client(Node):
         with log_errors():
             coroutines = []
             for name, data in kwargs.items():
-                keys = [tokey(f.key) for f in futures_of(data)]
-                coroutines.append(self.scheduler.publish_put(keys=keys,
-                    name=tokey(name), data=dumps(data), client=self.id))
+                try:
+                    keys = [tokey(f.key) for f in futures_of(data)]
+                except:
+                    keys = []
+                coroutines.append(self.scheduler.publish_put(
+                    keys=keys, name=tokey(name), data=dumps(data),
+                    client=self.id))
 
             yield coroutines
 

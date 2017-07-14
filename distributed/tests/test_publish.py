@@ -157,3 +157,22 @@ def test_publish_bag(s, a, b):
     assert out == [0, 1, 2]
     yield c.shutdown()
     yield f.shutdown()
+
+
+@gen_cluster(client=False)
+def test_publish_unpersisted(s, a, b):
+    db = pytest.importorskip('dask.bag')
+    c = yield Client((s.ip, s.port), asynchronous=True)
+    f = yield Client((s.ip, s.port), asynchronous=True)
+
+    seq = [0, 1, 2]
+    bag = db.from_sequence(seq)
+
+    yield c.publish_dataset(data=bag)
+
+    result = yield f.get_dataset('data')
+    out = yield f.compute(result)
+    assert out == seq
+
+    yield c.shutdown()
+    yield f.shutdown()
